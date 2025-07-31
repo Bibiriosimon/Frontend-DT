@@ -1,194 +1,236 @@
 <html lang="zh-CN">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bibi SIMUINTER Assistant</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bibi SIMU-INT Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- 确保 style.css 和 index.html 在同一个文件夹 -->
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <!-- 动态气泡背景 -->
-    <div class="background-bubbles">
-        <div class="bubble"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bubble"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bubble"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bubble"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bubble"><span></span><span></span><span></span><span></span><span></span></div>
+  <!-- 动态气泡背景 -->
+  <div class="background-bubbles"></div>
+
+  <!-- 主应用界面 -->
+  <header>
+    <div class="header-content">
+      <div id="userStatsContainer"></div>
+      <div class="logo">Bibi SIMU-INT <span>Assistant</span></div>
+      <div class="controls">
+        <div class="session-controls">
+          <button id="controlBtn" class="btn">Class Begin</button>
+          <button id="pauseBtn" class="btn" disabled>Pause</button>
+          <div id="statusIndicator">
+            <div id="waveIndicator"><span></span><span></span><span></span></div>
+            <div id="pauseIndicator"></div>
+          </div>
+        </div>
+        <div class="language-selector">
+          <div class="select-wrapper">
+            <label for="sourceLangSelect">Sorce:</label>
+            <select id="sourceLangSelect" class="lang-select">
+              <option value="en-US">English</option>
+              <option value="zh-CN">Chinese</option>
+            </select>
+          </div>
+          <div class="select-wrapper">
+            <label for="targetLangSelect">Target:</label>
+            <select id="targetLangSelect" class="lang-select">
+              <option value="ZH">Chinese</option>
+              <option value="EN">English</option>
+              <option value="KO">Korean</option>
+              <option value="JA">Japanese</option>
+              <option value="IT">Italian</option>
+              <option value="ES">Spanish</option>
+            </select>
+          </div>
+        </div>
+        <div class="view-switcher">
+          <button id="transBtn" class="btn active-view">TR</button>
+          <button id="noteBtn" class="btn">NT</button>
+          <button id="vocabBtn" class="btn">VOC</button>
+          <button id="rankBtn" class="btn">RANK</button>
+        </div>
+      </div>
+      <div class="user-info">
+        <div id="welcome-card" class="notification">
+          <div class="notiglow"></div>
+          <div class="notiborderglow"></div>
+          <div id="welcome-title" class="notititle">Welcome User</div>
+          <div id="welcome-body" class="notibody">Session is ready.</div>
+          <button id="logout-button" class="btn-secondary">退出</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="translationView" class="view-container">
+      <div id="liveContentOutput" class="live-content">
+        <p class="default-message">After clicking "Class Begin", the speech recognition and translation results will be displayed here in real time</p>
+      </div>
+    </div>
+    <div id="noteView" class="view-container">
+      <div class="view-actions">
+        <button id="showNoteHistoryBtn" class="btn btn-secondary">Look up the history</button>
+      </div>
+      <div id="noteOutput">
+        <p class="default-note-message">Note shown here</p>
+      </div>
+    </div>
+    <div id="vocabView" class="view-container">
+      <div id="vocabListContainer">
+        <p class="default-message">Starred vocabulary</p>
+      </div>
+    </div>
+    <!-- 【修复】删除了重复的 rankView，只保留一个 -->
+    <div id="rankView" class="view-container" style="display: none;">
+      <p class="default-message">Finding RANK...</p>
     </div>
 
-    <!-- 弹窗遮罩层 -->
-    <div id="popupOverlay">
-        
-        <!-- Popup 1: 单词快速词典 -->
-        <div id="dictionaryPopup" class="popup">
-            <div id="popupContent"></div>
-            <div class="popup-actions">
-                <button id="aiContextSearchBtn" class="btn">AI 上下文分析</button>
-                <button id="addVocabBtn" class="btn">添加单词本</button>
-            </div>
-        </div>
-
-        <!-- Popup 2: AI 上下文分析结果 -->
-        <div id="aiPopup" class="popup">
-            <div id="aiPopupContent"></div>
-        </div>
-
-        <!-- Popup 3: 超时警告 -->
-        <div id="timeoutWarningPopup" class="popup">
-            <h2>Bibi 即将Kiss Goodbye...</h2>
-            <p>已经有一段时间没有听到你的声音了。</p>
-            <div class="popup-actions">
-                <button id="resumeBtn" class="btn">我还活着</button>
-                <button id="endSessionBtn" class="btn">结束课程</button>
-            </div>
-        </div>
-
+    <!-- 反馈小部件 -->
+    <div id="feedback-widget">
+      <div class="brutalist-container">
+        <input placeholder="GIVE BIBI ADVICE" class="brutalist-input smooth-type" type="text" id="feedback-input" />
+        <label class="brutalist-label">WE NEED U</label>
+      </div>
+      <button id="submit-feedback-btn" class="brutalist-button">SEND</button>
     </div>
+  </main>
 
-    <header>
-        <div class="header-content">
-            <div class="logo">Bibi SIMU-INT <span>Assistant</span></div>
-            <div class="controls">
-                <div class="session-controls">
-                    <button id="controlBtn" class="btn">开始上课</button>
-                    <button id="pauseBtn" class="btn" disabled>暂停</button>
-                    <div id="statusIndicator">
-                        <div id="waveIndicator">
-                            <span></span><span></span><span></span>
-                        </div>
-                        <div id="pauseIndicator"></div>
-                    </div>
-                </div>
-                <div class="view-switcher">
-                    <button id="transBtn" class="btn active-view">同声传译</button> 
-                    <button id="noteBtn" class="btn">笔记本</button>  
-                    <button id="vocabBtn" class="btn">单词本</button>
-                </div>
-            </div>
+  <!-- 登录/注册弹窗 -->
+  <div id="auth-modal-overlay" class="popup-style-wrapper">
+    <div class="modal-overlay-background"></div>
+    <div class="auth-box">
+      <form id="login" class="auth-form">
+        <div class="logo-auth">Bibi SIMU-INT <span>Assistant</span></div>
+        <div id="auth-loader" class="loader-container">
+          <div class="loader">
+            <div class="box1"></div>
+            <div class="box2"></div>
+            <div class="box3"></div>
+          </div>
         </div>
-    </header>
+        <div id="login-message" class="auth-message"></div>
+        <div class="inputbox"><input type="text" id="login-username" required="required"><span>Enter username</span><i></i></div>
+        <div class="inputbox"><input type="password" id="login-password" required="required"><span>Enter password</span><i></i></div>
+        <button type="submit" class="btn">Login</button>
+        <p class="form-switcher">No Account? <a href="#" id="show-register-link">Sign up!</a></p>
+      </form>
+      <form id="register" class="auth-form">
+        <div class="logo-auth">Bibi SIMU-INT <span>Assistant</span></div>
+        <div id="register-message" class="auth-message"></div>
+        <div class="inputbox"><input type="text" id="register-username" required="required"><span>Set username</span><i></i></div>
+        <div class="inputbox"><input type="password" id="register-password" required="required"><span>Set Password</span><i></i></div>
+        <button type="submit" class="btn">Sign up</button>
+        <p class="form-switcher">Already Sign Up?<a href="#" id="show-login-link">Back To Login</a></p>
+      </form>
+    </div>
+  </div>
 
-    <main>
-        <div id="translationView" class="view-container">
-            <div id="liveContentOutput" class="live-content">
-                <p style="color: #a0a8b7;">点击“开始上课”后，这里将实时显示语音识别和翻译结果。</p>
-            </div>
-        </div>
-
-        <div id="noteView" class="view-container">
-            <div id="noteOutput">
-                <p class="default-note-message">你的笔记将在这里显示。</p>
-            </div>
-        </div>
-
-        <div id="vocabView" class="view-container">
-            <div id="vocabListContainer">
-                <p style="color: #a0a8b7;">你收藏的单词会出现在这里。</p>
-            </div>
-        </div>
-    </main>
-
+  <!-- 【修复】所有功能性弹窗都整合到这一个遮罩层下，结构清晰 -->
+  <div id="popupOverlay">
     <!-- 课程名称弹窗 -->
-    <div id="courseNameModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>开始新课程</h2>
-            <p>请输入本堂课的主题，以获得更精准的翻译和笔记。</p>
-            <input type="text" id="courseNameInput" placeholder="例如：Application Of AI">
-            <div class="modal-actions">
-                <button id="modalCancelBtn" class="btn-secondary">取消</button>
-                <button id="modalConfirmBtn" class="btn-primary">确定</button>
-            </div>
+    <div id="courseNameModal" class="popup">
+      <span class="popup-esc-hint">ESC</span>
+      <div class="modal-content">
+        <h2>NEW</h2>
+        <p>Please enter a name or topic for this lesson:</p>
+        <input type="text" id="courseNameInput" placeholder="例如：量子物理导论">
+        <div class="modal-actions">
+          <button id="skipCourseNameBtn" class="btn btn-secondary">SKIP</button>
+          <button id="startCourseBtn" class="btn">SURE</button>
         </div>
+      </div>
     </div>
-    
-    <!-- ✨ 新增：加载动画遮罩层 -->
-    <div id="spinnerOverlay" class="spinner-overlay">
-        <div class="spinner">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
-        <p id="spinnerMessage"></p>
+    <!-- 字典弹窗 -->
+    <div id="dictionaryPopup" class="popup">
+      <span class="popup-esc-hint">ESC</span>
+      <div id="popupContent"></div>
+      <div class="popup-actions">
+        <button id="aiContextSearchBtn" class="btn btn-secondary">AI 上下文分析</button>
+        <button id="addVocabBtn" class="btn">添加到单词本</button>
+      </div>
     </div>
-    
-    <!-- 模式提示框 -->
-    <div id="mode-indicator"></div>
+    <!-- AI分析弹窗 -->
+    <div id="aiPopup" class="popup">
+      <span class="popup-esc-hint">ESC</span>
+      <div id="aiPopupContent"></div>
+    </div>
+    <!-- 超时警告弹窗 -->
+    <div id="timeoutWarningPopup" class="popup">
+      <span class="popup-esc-hint">ESC</span>
+      <h2>No voice detected for a long time</h2>
+      <p>Class will finish after <span id="timeoutCountdown">10</span> second, will U keep going on？</p>
+      <div class="popup-actions">
+        <button id="resumeBtn" class="btn resumable">Continue</button>
+        <button id="endSessionBtn" class="btn">Engd class</button>
+      </div>
+    </div>
+    <!-- 【修复】将笔记历史弹窗整合到这里，并修复了ID重复问题 -->
+    <div id="noteHistoryModal" class="popup wide">
+      <span class="popup-esc-hint" id="closeNoteHistoryModal">ESC</span>
+      <h2>History</h2>
+      <div id="noteHistoryList" class="modal-body-scrollable">
+        <p>Noting...</p>
+      </div>
+      <div class="modal-actions">
+        <button id="closeNoteHistoryBtn" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
 
-    <!-- 模式切换开关 (固定在右上角) -->
-    <div class="toggle-cont">
-        <input class="toggle-input" id="mode-switch" type="checkbox" />
-        <label class="toggle-label" for="mode-switch">
-            <div class="cont-icon">
-            </div>
-        </label>
-    </div>
-    
-    <!-- 赛博朋克名片 (固定在右下角) -->
-    <div class="container noselect">
-        <div class="canvas">
-            <div class="tracker tr-1"></div>
-            <div class="tracker tr-2"></div>
-            <div class="tracker tr-3"></div>
-            <div class="tracker tr-4"></div>
-            <div class="tracker tr-5"></div>
-            <div class="tracker tr-6"></div>
-            <div class="tracker tr-7"></div>
-            <div class="tracker tr-8"></div>
-            <div class="tracker tr-9"></div>
-            <div class="tracker tr-10"></div>
-            <div class="tracker tr-11"></div>
-            <div class="tracker tr-12"></div>
-            <div class="tracker tr-13"></div>
-            <div class="tracker tr-14"></div>
-            <div class="tracker tr-15"></div>
-            <div class="tracker tr-16"></div>
-            <div class="tracker tr-17"></div>
-            <div class="tracker tr-18"></div>
-            <div class="tracker tr-19"></div>
-            <div class="tracker tr-20"></div>
-            <div class="tracker tr-21"></div>
-            <div class="tracker tr-22"></div>
-            <div class="tracker tr-23"></div>
-            <div class="tracker tr-24"></div>
-            <div class="tracker tr-25"></div>
-            <div id="card">
-                <div class="card-content">
-                    <div class="card-glare"></div>
-                    <div class="cyber-lines">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                    <p id="prompt">WANNA BE IN IT FOREVER GIRL</p>
-                    <div class="title">YOU KNOW<br>I ADORE YA</div>
-                    <div class="glowing-elements">
-                        <div class="glow-1"></div>
-                        <div class="glow-2"></div>
-                        <div class="glow-3"></div>
-                    </div>
-                    <div class="subtitle">
-                        <span>version 3.3</span>
-                        <span class="highlight">BIBI</span>
-                    </div>
-                    <div class="card-particles">
-                        <span></span><span></span><span></span><span></span><span></span><span></span>
-                    </div>
-                    <div class="corner-elements">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                    <div class="scan-line"></div>
-                </div>
-            </div>
+  <!-- 加载动画 (Spinner) -->
+  <div id="spinnerOverlay" class="spinner-overlay">
+    <div class="spinner"></div>
+    <p>rushing...</p>
+  </div>
+
+  <!-- 模式指示器 -->
+  <div id="mode-indicator"></div>
+
+  <!-- 模式切换开关 -->
+  <label class="bb8-toggle">
+    <input class="bb8-toggle__checkbox" type="checkbox" id="mode-switch">
+    <div class="bb8-toggle__container">
+      <div class="bb8-toggle__scenery">
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="bb8-toggle__star"></div>
+        <div class="tatto-1"></div>
+        <div class="tatto-2"></div>
+        <div class="gomrassen"></div>
+        <div class="hermes"></div>
+        <div class="chenini"></div>
+        <div class="bb8-toggle__cloud"></div>
+        <div class="bb8-toggle__cloud"></div>
+        <div class="bb8-toggle__cloud"></div>
+      </div>
+      <div class="bb8">
+        <div class="bb8__head-container">
+          <div class="bb8__antenna"></div>
+          <div class="bb8__antenna"></div>
+          <div class="bb8__head"></div>
         </div>
+        <div class="bb8__body"></div>
+      </div>
+      <div class="artificial">
+        <div class="bb8__shadow"></div>
+      </div>
     </div>
-    
-    <script src="script.js"></script>
-  
+  </label>
+
+  <!-- 确保 pen.js 和 index.html 在同一个文件夹 -->
+  <script src="pen.js"></script>
 </body>
+
 </html>
